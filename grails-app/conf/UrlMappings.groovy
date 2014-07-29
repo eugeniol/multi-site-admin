@@ -1,13 +1,8 @@
 class UrlMappings {
-
-
 	static mappings = {
+		"/"(controller: 'multiSiteAdmin', action: 'index')
 
-		getProperty('action')
-		getProperty('id')
-		name home: "/admintool/(*)?/(*)?"(controller: 'multiSiteAdmin')
-
-		"/test/$action?"(controller: 'test')
+		"/admintool/$action?/$id?"(controller: 'multiSiteAdmin')
 
 
 	}

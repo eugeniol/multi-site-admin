@@ -2,6 +2,7 @@ import grails.converters.JSON
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.commons.lang.StringEscapeUtils
 
+import javax.servlet.http.Cookie
 import java.text.DateFormat
 
 /**
@@ -14,13 +15,43 @@ import java.text.DateFormat
 class MultiSiteAdminController {
 	String PROJECT_PATH = 'C:\\Users\\elattanzio\\Workspaces\\scenic3\\ema-site-app\\'
 
-	def index = {}
+	def index = {
+
+	}
+
 
 	List getFilter() {
 		params.list('filter') ?: []
 	}
 
-	def siteparams = {
+	def beforeInterceptor = {
+		println "here"
+
+		if (!session.project_path && !(actionName in ['config', 'reset'])) {
+			println "cookie not set"
+			redirect(action: 'config')
+		}
+
+	}
+
+
+	def reset = {
+		session.invalidate()
+		redirect action: 'config'
+	}
+
+
+	def config = {
+		def defaultPath = PROJECT_PATH
+
+		if (request.post) {
+			session.project_path = params.project_path
+			redirect action: 'index'
+		}
+
+		[defaultPath: defaultPath]
+	}
+	def siteParams = {
 		def ctrl = new MultiSiteFileUtils(PROJECT_PATH, MultiSiteFileUtils.SITE_PARAMS)
 		if (request.post) {
 			ctrl.update(params.site, params.key, params.value)
@@ -31,7 +62,7 @@ class MultiSiteAdminController {
 
 	}
 
-	def translations = {
+	def translationsBySite = {
 		def ctrl = new MultiSiteFileUtils(PROJECT_PATH, MultiSiteFileUtils.TRANSLATIONS)
 		if (request.post) {
 			ctrl.update(params.site, params.key, params.value) as JSON
@@ -42,7 +73,7 @@ class MultiSiteAdminController {
 
 	}
 
-	def translationsByLang = {
+	def translationsByLanguage = {
 		def locales = [:]
 		DateFormat.availableLocales.each {
 			locales[it.toString()] = it
@@ -62,7 +93,7 @@ class MultiSiteAdminController {
 
 	}
 
-	def sharing = {
+	def siteParamsByKey = {
 		def siteParamsBySite = new MultiSiteFileUtils(PROJECT_PATH, MultiSiteFileUtils.SITE_PARAMS).siteParamsBySite
 
 		[allConfig: siteParamsBySite]

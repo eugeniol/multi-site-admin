@@ -21,8 +21,8 @@
 <body>
 
 <ul class="nav nav-tabs" role="tablist">
-	<g:each in="${['index', 'translations', 'siteparams', 'sharing', 'translationsByLang']}" var="el">
-		<li class="${el == actionName ? 'active' : ''}"><g:link action="${el}">${el}</g:link></li>
+	<g:each in="${['index', 'config', 'translationsByLanguage', 'translationsBySite', 'siteParams', 'siteParamsByKey']}" var="el">
+		<li class="${el == actionName ? 'active' : ''}"><g:link action="${el}"><%= el.replaceAll(/\B[A-Z]/) { ' ' + it }.toLowerCase() %></g:link></li>
 	</g:each>
 </ul>
 
