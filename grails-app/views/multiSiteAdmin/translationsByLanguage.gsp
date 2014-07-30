@@ -6,7 +6,10 @@
 	<tr>
 		<th>#</th>
 		<g:each in="${localesList}">
-			<th title="${it}" data-key="${it}">${locales."$it"?.displayName ?: it}</th>
+			<th title="${it}" data-key="${it}">
+				<img src="http://l10n.xwiki.org/xwiki/bin/download/L10N/Flags/${it.replaceFirst('_','-')}.png"/>
+				${locales."$it"?.displayName ?: it}
+			</th>
 		</g:each>
 	</tr>
 	</thead>
