@@ -38,7 +38,7 @@ class MultiSiteFileUtils {
 			siteParams[it] = getMessagesProperties(it, SITE_PARAMS_FILENAME)
 		}
 
-		List addCountry = ['es', 'pt', 'zn']
+		List addCountry = ['es', 'pt', 'zh']
 		siteParamsBySite.languageCode.each { language, sites2 ->
 			def languages = [:]
 			if (language in addCountry) {
