@@ -27,9 +27,9 @@ class MultiSiteAdminController {
 	def beforeInterceptor = {
 		if (!session.project_path && !(actionName in ['config', 'reset'])) {
 //			println "cookie not set"
-			session.project_path = PROJECT_PATH
-			redirect(action: 'translationsByLanguage')
-			return
+//			session.project_path = PROJECT_PATH
+//			redirect(action: 'translationsByLanguage')
+//			return
 			redirect(action: 'config')
 		}
 
