@@ -33,30 +33,50 @@ class MultiSiteFileUtils {
 
 
 		def messagesPropertiesByLocale = [:]
-		siteParamsBySite.languageCode.each { locale, sites ->
-			def site = sites.last()
+		Map<String, PropertiesConfiguration> siteParams = [:]
+		sites.each {
+			siteParams[it] = getMessagesProperties(it, SITE_PARAMS_FILENAME)
+		}
 
-			def messages = sites.collect { messagesBySite[it] }
-
-			def properties = messages.last()
-
-			messagesByLocale[locale] = properties
-			messagesPropertiesByLocale[locale] = messages
-
-			properties.keys.each { key ->
-				if (!allTranslations.containsKey(key)) allTranslations[key] = [:]
-
-				def detail = [:]
-
-				sites.each {
-					detail[it] = messagesBySite[it].getString(key)
+		List addCountry = ['es', 'pt', 'zn']
+		siteParamsBySite.languageCode.each { language, sites2 ->
+			def languages = [:]
+			if (language in addCountry) {
+				sites2.each {
+					def k = language + '_' + siteParams[it].getString('countryCode')?.trim()
+					languages[k] = [it]
 				}
+			} else {
+				languages[language] = sites2
+			}
 
-				if (detail.values().toList().unique().size() > 1) {
-					problem[key + '=' + locale] = detail
+			println languages
+
+			languages.each { locale, sites ->
+				def site = sites.last()
+
+				def messages = sites.collect { messagesBySite[it] }
+
+				def properties = messages.last()
+
+				messagesByLocale[locale] = properties
+				messagesPropertiesByLocale[locale] = messages
+
+				properties.keys.each { key ->
+					if (!allTranslations.containsKey(key)) allTranslations[key] = [:]
+
+					def detail = [:]
+
+					sites.each {
+						detail[it] = messagesBySite[it].getString(key)
+					}
+
+					if (detail.values().toList().unique().size() > 1) {
+						problem[key + '=' + locale] = detail
+					}
+					allTranslations[key][locale] = properties.getString(key)
+
 				}
-				allTranslations[key][locale] = properties.getString(key)
-
 			}
 		}
 
