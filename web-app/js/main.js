@@ -143,28 +143,7 @@
 		return newKey
 	}
 
-	function _duplicateRow(th) {
-		var newKey = getNewName(th),
-			tr = th.parent(),
-			newRow = tr.clone(),
-			table = tr.parents('table').first()
 
-		if (newKey) {
-			newRow.find('th').text(newKey)
-
-			tr.after(newRow)
-
-			newRow.find('td').each(function () {
-				var td = $(this),
-					th = table.find('thead tr th').eq(td.index());
-
-				$.post(location.toString(), {value: this.innerHTML, key: newKey, site: th.data('key')}, function (r) {
-					console.log('saved');
-				});
-			});
-
-		}
-	}
 
 	function _deleteRow(th, action) {
 		var tr = th.parent(),
@@ -172,7 +151,7 @@
 			table = tr.parents('table').first(),
 			newKey
 
-		if (action === 'rename') {
+		if (action === 'rename' || action === 'duplicate') {
 			newKey = getNewName(th)
 			if (!newKey)
 				return
@@ -180,12 +159,21 @@
 
 		$.post(action, {key: key, file: table.data('type'), newKey: newKey}, function (r) {
 			console.log(action, 'saved');
-			if (newKey) {
-				th.text(newKey)
+			switch (action) {
+
+				case 'rename':
+					th.text(newKey)
+					break
+				case 'delete':
+					tr.remove()
+					break;
+				case 'duplicate':
+					var newRow = tr.clone(true);
+					newRow.find('th').text(newKey);
+					tr.after(newRow);
+
 			}
-			if (action == 'delete') {
-				tr.remove()
-			}
+
 		});
 	}
 
@@ -197,8 +185,6 @@
 			var action = selectedMenu.data('action')
 			switch (action) {
 				case 'duplicate':
-					_duplicateRow(invokedOn);
-					break
 				case 'delete':
 				case 'rename':
 					_deleteRow(invokedOn, action);

@@ -37,6 +37,26 @@ class MultiSiteAdminController {
 
 
 
+	def duplicate = {
+		if (request.post) {
+			def key = params.key,
+			    newKey = params.newKey,
+			    type = params.type == 'translations' ? MultiSiteFileUtils.TRANSLATIONS : MultiSiteFileUtils.SITE_PARAMS
+
+			def ctrl = new MultiSiteFileUtils(resolvePath(), type)
+
+			ctrl.messagesBySite.each { site, prop ->
+				if (prop.containsKey(key)) {
+					def val = prop.getString(key)
+					prop.addProperty(newKey, val)
+					ctrl.save(prop)
+				}
+			}
+
+			return render(params as JSON)
+		}
+	}
+
 	def delete = {
 		if (request.post) {
 			def key = params.key,
@@ -94,7 +114,7 @@ class MultiSiteAdminController {
 		def workspace = new File(new File(applicationPath), '../../')
 		def emaFile = new File(workspace, 'ema-site-app')
 
-		println emaFile.absolutePath
+
 		if (emaFile.exists())
 			defaultPath = emaFile.canonicalFile.absolutePath
 
@@ -121,8 +141,7 @@ class MultiSiteAdminController {
 		assert session.project_path
 		def file = new File(session.project_path)
 		assert file.exists()
-		println file
-		println file.exists()
+
 		return file
 	}
 

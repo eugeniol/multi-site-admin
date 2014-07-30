@@ -37,7 +37,7 @@
 
 
 <ul id="contextMenu" class="dropdown-menu" role="menu" style="display:none">
-	<li><a data-action="duplicate" tabindex="-1">Duplicate</a></li>
+	<li><a data-action="duplicate" tabindex="-1"><i class="glyphicon glyphicon-file"></i> Copy</a></li>
 	<li><a data-action="rename" tabindex="-1"><i class="glyphicon glyphicon-pencil"></i> Rename key</a></li>
 	<li><a data-action="delete" tabindex="-1"><i class="glyphicon glyphicon-trash"></i> Delete</a></li>
 
