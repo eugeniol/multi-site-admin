@@ -25,6 +25,11 @@
 		return charCount;
 	}
 
+
+	function _saveTr(td) {
+
+	}
+
 	$('#translations').
 		on('mousedown', 'td', function (ev) {
 			var td = $(this),
@@ -43,7 +48,7 @@
 			td.one('blur', function () {
 				var val = this.innerHTML
 				if (old != val) {
-					$.post(location.toString(), {value: val, key: key, site: th.text()}, function (r) {
+					$.post(location.toString(), {value: val, key: key, site: th.data('key')}, function (r) {
 						console.log('saved');
 					});
 				}
@@ -122,10 +127,86 @@
 
 	$('td.bg-danger').popover({
 		trigger: 'focus',
-
 		html: true,
-
 	})
+
+	function getNewName(th) {
+		var newKey = prompt('Insert new key name', th.text()),
+			table = th.parents('table').first()
+
+		while (table.find('tbody th').filter(function () {
+			return $.trim($(this).text()) == newKey
+		}).size() > 0) {
+			newKey = prompt('Insert new key name, the key exists already', newKey)
+		}
+
+		return newKey
+	}
+
+	function _duplicateRow(th) {
+		var newKey = getNewName(th),
+			tr = th.parent(),
+			newRow = tr.clone(),
+			table = tr.parents('table').first()
+
+		if (newKey) {
+			newRow.find('th').text(newKey)
+
+			tr.after(newRow)
+
+			newRow.find('td').each(function () {
+				var td = $(this),
+					th = table.find('thead tr th').eq(td.index());
+
+				$.post(location.toString(), {value: this.innerHTML, key: newKey, site: th.data('key')}, function (r) {
+					console.log('saved');
+				});
+			});
+
+		}
+	}
+
+	function _deleteRow(th, action) {
+		var tr = th.parent(),
+			key = th.text(),
+			table = tr.parents('table').first(),
+			newKey
+
+		if (action === 'rename') {
+			newKey = getNewName(th)
+			if (!newKey)
+				return
+		}
+
+		$.post(action, {key: key, file: table.data('type'), newKey: newKey}, function (r) {
+			console.log(action, 'saved');
+			if (newKey) {
+				th.text(newKey)
+			}
+			if (action == 'delete') {
+				tr.remove()
+			}
+		});
+	}
+
+
+	$("table tbody th").contextMenu({
+		menuSelector: "#contextMenu",
+		menuSelected: function (invokedOn, selectedMenu) {
+//			console.log(invokedOn, selectedMenu)
+			var action = selectedMenu.data('action')
+			switch (action) {
+				case 'duplicate':
+					_duplicateRow(invokedOn);
+					break
+				case 'delete':
+				case 'rename':
+					_deleteRow(invokedOn, action);
+					break
+
+			}
+		}
+	});
 
 
 }(jQuery));

@@ -21,8 +21,10 @@
 <body>
 
 <ul class="nav nav-tabs" role="tablist">
-	<g:each in="${['index', 'config', 'translationsByLanguage', 'translationsBySite', 'siteParams', 'siteParamsByKey']}" var="el">
-		<li class="${el == actionName ? 'active' : ''}"><g:link action="${el}"><%= el.replaceAll(/\B[A-Z]/) { ' ' + it }.toLowerCase() %></g:link></li>
+	<g:each in="${['index', 'config', 'translationsByLanguage', 'translationsBySite', 'siteParams', 'siteParamsByKey']}"
+			var="el">
+		<li class="${el == actionName ? 'active' : ''}"><g:link
+				action="${el}"><%=el.replaceAll(/\B[A-Z]/) { ' ' + it }.toLowerCase()%></g:link></li>
 	</g:each>
 </ul>
 
@@ -33,10 +35,25 @@
 </div>
 
 
+
+<ul id="contextMenu" class="dropdown-menu" role="menu" style="display:none">
+	<li><a data-action="duplicate" tabindex="-1">Duplicate</a></li>
+	<li><a data-action="rename" tabindex="-1"><i class="glyphicon glyphicon-pencil"></i> Rename key</a></li>
+	<li><a data-action="delete" tabindex="-1"><i class="glyphicon glyphicon-trash"></i> Delete</a></li>
+
+
+	%{--<li class="divider"></li>--}%
+
+</ul>
+
+
+
 <script>window.jQuery || document.write('<script src="${g.resource(dir: 'js/vendor', file: 'jquery-1.10.2.min.js')}"><\/script>')</script>
 <script src="${g.resource(dir: 'js/vendor', file: 'rangy-core.js')}"></script>
 <script src="${g.resource(dir: 'js/vendor', file: 'bootstrap.js')}"></script>
 <script src="${g.resource(dir: 'js/vendor', file: 'bootstrap-select.js')}"></script>
+
+
 <script src="${g.resource(dir: 'js', file: 'plugins.js')}"></script>
 
 <script src="${g.resource(dir: 'js', file: 'main.js')}"></script>

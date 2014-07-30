@@ -1,12 +1,12 @@
 <html>
 <body>
 
-<table class="table" id="translations">
+<table class="table" id="translations" data-type="translations">
 	<thead>
 	<tr>
 		<th>#</th>
 		<g:each in="${localesList}">
-			<th title="${it}">${locales."$it"?.displayName ?: it}</th>
+			<th title="${it}" data-key="${it}">${locales."$it"?.displayName ?: it}</th>
 		</g:each>
 	</tr>
 	</thead>
@@ -14,7 +14,6 @@
 
 	<g:each in="${allTranslations?.keySet().sort() ?:[]}" var="key">
 		<tr>
-
 			<th>${key}</th>
 			<g:each in="${localesList}" var="locale">
 				<td <%

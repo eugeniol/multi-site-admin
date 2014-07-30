@@ -1,16 +1,3 @@
-grails.config.locations = [ "file:${basedir}\\grails-app\\conf\\META-INF\\site-local.properties",
-		com.mtvni.datasource.jsonpath.MapperConfig,
-		com.mtvni.datasource.solr.MapperConfig,
-		com.mtvni.media.GoverningAgreementConfig,
-		com.mtvni.player.PlayerConfig,
-		com.mtvni.scheduler.CronConfig]
-
-// esiParams
-esiParams.defaultDsTtl =60
-esiParams.defaultMaxAge =60
-
-
-
 grails.app.context = "/"
 //grails.project.groupId = appName // change this to alter the default package name and Maven publishing destination
 // we'd need to disable this in order to support dynamic css generation and .css urls

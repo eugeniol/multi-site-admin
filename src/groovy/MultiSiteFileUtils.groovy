@@ -1,12 +1,13 @@
 import grails.converters.JSON
+import org.apache.commons.configuration.AbstractConfiguration
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.commons.lang.StringEscapeUtils
 
 import java.text.DateFormat
 
 class MultiSiteFileUtils {
-	static final String SITE_PARAMS = 'siteparams'
-	static final String TRANSLATIONS = 'translations'
+	static final String SITE_PARAMS = 'siteParams.properties'
+	static final String TRANSLATIONS = 'messages.properties'
 
 	private File projectPath
 	private Map<String, PropertiesConfiguration> _messagesBySite = [:]
@@ -25,21 +26,22 @@ class MultiSiteFileUtils {
 
 
 
-	def translationsByLang = {
-//		propFile = 'translations'
-//		File dir = new File(_path(dirName))
-//		getMultiSitesProperties(dir)
-
+	Map translationsByLang() {
 		def messagesByLocale = [:],
 		    allTranslations = [:],
 		    problem = [:]
 
 
+		def messagesPropertiesByLocale = [:]
 		siteParamsBySite.languageCode.each { locale, sites ->
 			def site = sites.last()
-			def properties = messagesBySite[site]
+
+			def messages = sites.collect { messagesBySite[it] }
+
+			def properties = messages.last()
 
 			messagesByLocale[locale] = properties
+			messagesPropertiesByLocale[locale] = messages
 
 			properties.keys.each { key ->
 				if (!allTranslations.containsKey(key)) allTranslations[key] = [:]
@@ -53,8 +55,6 @@ class MultiSiteFileUtils {
 				if (detail.values().toList().unique().size() > 1) {
 					problem[key + '=' + locale] = detail
 				}
-
-
 				allTranslations[key][locale] = properties.getString(key)
 
 			}
@@ -63,7 +63,8 @@ class MultiSiteFileUtils {
 		[
 				messagesByLocale: messagesByLocale,
 				allTranslations: allTranslations,
-				problem: problem
+				problem: problem,
+				messagesPropertiesByLocale: messagesPropertiesByLocale
 		]
 	}
 
@@ -75,7 +76,8 @@ class MultiSiteFileUtils {
 
 		_path(I18N_PATH).eachDir {
 			def site = it
-			_messagesBySite[site.name] = getMessagesProperties(site, I18N_FILENAME)
+			if (it.name != '.svn')
+				_messagesBySite[site.name] = getMessagesProperties(site, I18N_FILENAME)
 		}
 		return _messagesBySite
 	}
@@ -83,7 +85,8 @@ class MultiSiteFileUtils {
 	List<String> getSites() {
 		List sites = []
 		_path(dirName).eachDir {
-			sites << it.name
+			if (it.name != '.svn')
+				sites << it.name
 		}
 		return sites
 	}
@@ -121,19 +124,21 @@ class MultiSiteFileUtils {
 		List sites = [], allSites = []
 
 		dir.eachDir {
-			def site = it
-			allSites << it.name
-			if (all || site.name in filter) {
-				sites << site.name
-				def properties = getMessagesProperties(site)
+			if (it.name != '.svn') {
+				def site = it
+				allSites << it.name
+				if (all || site.name in filter) {
+					sites << site.name
+					def properties = getMessagesProperties(site)
 
-				properties.keys.each {
-					if (!allTranslations.containsKey(it)) allTranslations[it] = [:]
+					properties.keys.each {
+						if (!allTranslations.containsKey(it)) allTranslations[it] = [:]
 
-					allTranslations[it][site.name] = properties.getString(it)
+						allTranslations[it][site.name] = properties.getString(it)
+					}
+
+					translations[it.name] = properties
 				}
-
-				translations[it.name] = properties
 			}
 		}
 
@@ -143,11 +148,11 @@ class MultiSiteFileUtils {
 
 
 	String getFileName() {
-		propFile == 'translations' ? I18N_FILENAME : SITE_PARAMS_FILENAME
+		propFile == TRANSLATIONS ? I18N_FILENAME : SITE_PARAMS_FILENAME
 	}
 
 	String getDirName() {
-		propFile == 'translations' ? I18N_PATH : SITE_PARAMS_PATH
+		propFile == TRANSLATIONS ? I18N_PATH : SITE_PARAMS_PATH
 	}
 
 	private File getMessagesFile(String site, String file = '') {
@@ -161,8 +166,11 @@ class MultiSiteFileUtils {
 
 	private PropertiesConfiguration getMessagesProperties(File site, String file = '') {
 		def properties = new PropertiesConfiguration()
+		PropertiesConfiguration.defaultListDelimiter = AbstractConfiguration.DISABLED_DELIMITER
+
 		File propertiesFile = new File(site, file ?: fileName)
 
+		properties.file = propertiesFile
 		properties.load(propertiesFile.newReader("UTF-8"))
 		properties.setEncoding("UTF-8");
 		return properties
@@ -171,32 +179,47 @@ class MultiSiteFileUtils {
 
 
 	void update(String site, Map map) {
-		PropertiesConfiguration messages = getMessagesProperties(site)
+		PropertiesConfiguration messages = getMessagesProperties(site, propFile)
+		update(messages, map)
+	}
 
+	void update(PropertiesConfiguration messages, Map map) {
+		messages.fileName
 		map.each { key, value ->
 			messages.setProperty(key, value.toString())
 		}
+		save(messages)
+	}
 
+
+	void save(PropertiesConfiguration messages) {
 		def os = new ByteArrayOutputStream()
 		messages.save(os);
-
 		// hack
-		File f = getMessagesFile(site)
+		File f = messages.file
 		def newFile = new OutputStreamWriter(new FileOutputStream(f), "UTF-8");
 		newFile.write(StringEscapeUtils.unescapeJava(os.toString('UTF-8')))
 		newFile.close()
 	}
 
+	void update(PropertiesConfiguration messages, String key, String value) {
+		Map map = [:]
+		map[key] = value
+		update(messages, map)
+	}
+
 	void update(String site, String key, String value) {
-		def map = [:]
+		Map map = [:]
 		map[key] = value
 		update(site, map)
 	}
 
 
 
+
 	private File _path(sub) {
 		return new File(projectPath, sub)
 	}
+
 
 }

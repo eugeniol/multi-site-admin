@@ -1,10 +1,10 @@
 <g:if test="${sites}">
-	<table class="table" id="translations">
+	<table class="table" id="translations" data-type="${type}">
 		<thead>
 		<tr>
 			<th>#</th>
 			<g:each in="${sites}">
-				<th>${it}</th>
+				<th data-key="${it}">${it}</th>
 			</g:each>
 		</tr>
 		</thead>
