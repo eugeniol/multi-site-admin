@@ -8,7 +8,7 @@ class MultiSiteFileUtils {
 	static final String SITE_PARAMS = 'siteparams'
 	static final String TRANSLATIONS = 'translations'
 
-	private String projectPath = ''
+	private File projectPath
 	private Map<String, PropertiesConfiguration> _messagesBySite = [:]
 
 	private static final String SITE_PARAMS_FILENAME = 'siteParams.properties'
@@ -16,7 +16,7 @@ class MultiSiteFileUtils {
 	private static final String SITE_PARAMS_PATH = 'web-app/WEB-INF/sites/'
 	private static final String I18N_FILENAME = 'messages.properties'
 
-	MultiSiteFileUtils(String path, String propertyFile) {
+	MultiSiteFileUtils(File path, String propertyFile) {
 		propFile = propertyFile
 		projectPath = path
 	}
@@ -73,7 +73,7 @@ class MultiSiteFileUtils {
 		if (_messagesBySite)
 			return _messagesBySite;
 
-		new File(_path(I18N_PATH)).eachDir {
+		_path(I18N_PATH).eachDir {
 			def site = it
 			_messagesBySite[site.name] = getMessagesProperties(site, I18N_FILENAME)
 		}
@@ -82,7 +82,7 @@ class MultiSiteFileUtils {
 
 	List<String> getSites() {
 		List sites = []
-		new File(_path(dirName)).eachDir {
+		_path(dirName).eachDir {
 			sites << it.name
 		}
 		return sites
@@ -115,7 +115,7 @@ class MultiSiteFileUtils {
 	}
 
 	Map getMultiSitesProperties(List filter, Boolean all = false) {
-		File dir = new File(_path(dirName))
+		File dir = _path(dirName)
 
 		Map translations = [:], allTranslations = [:]
 		List sites = [], allSites = []
@@ -151,12 +151,12 @@ class MultiSiteFileUtils {
 	}
 
 	private File getMessagesFile(String site, String file = '') {
-		new File(new File(new File(_path(dirName)), site), file ?: fileName)
+		new File(new File(_path(dirName), site), file ?: fileName)
 	}
 
 	private PropertiesConfiguration getMessagesProperties(String site, String file = '') {
 		def dir = file == TRANSLATIONS ? _path(I18N_PATH) : _path(SITE_PARAMS_PATH)
-		getMessagesProperties(new File(new File(dir), site), file)
+		getMessagesProperties(new File(dir, site), file)
 	}
 
 	private PropertiesConfiguration getMessagesProperties(File site, String file = '') {
@@ -195,8 +195,8 @@ class MultiSiteFileUtils {
 
 
 
-	private String _path(sub) {
-		return projectPath + sub
+	private File _path(sub) {
+		return new File(projectPath, sub)
 	}
 
 }

@@ -1,8 +1,5 @@
 import grails.converters.JSON
-import org.apache.commons.configuration.PropertiesConfiguration
-import org.apache.commons.lang.StringEscapeUtils
 
-import javax.servlet.http.Cookie
 import java.text.DateFormat
 
 /**
@@ -25,8 +22,6 @@ class MultiSiteAdminController {
 	}
 
 	def beforeInterceptor = {
-		println "here"
-
 		if (!session.project_path && !(actionName in ['config', 'reset'])) {
 			println "cookie not set"
 			redirect(action: 'config')
@@ -42,7 +37,7 @@ class MultiSiteAdminController {
 
 
 	def config = {
-		def defaultPath = PROJECT_PATH
+		def defaultPath = ''
 
 		if (request.post) {
 			session.project_path = params.project_path
@@ -52,7 +47,7 @@ class MultiSiteAdminController {
 		[defaultPath: defaultPath]
 	}
 	def siteParams = {
-		def ctrl = new MultiSiteFileUtils(PROJECT_PATH, MultiSiteFileUtils.SITE_PARAMS)
+		def ctrl = new MultiSiteFileUtils(resolvePath(), MultiSiteFileUtils.SITE_PARAMS)
 		if (request.post) {
 			ctrl.update(params.site, params.key, params.value)
 			render([ok: true] as JSON)
@@ -62,8 +57,18 @@ class MultiSiteAdminController {
 
 	}
 
+	File resolvePath() {
+		assert session.project_path
+		def file = new File(session.project_path)
+		assert file.exists()
+		println file
+		println file.exists()
+		return file
+	}
+
+
 	def translationsBySite = {
-		def ctrl = new MultiSiteFileUtils(PROJECT_PATH, MultiSiteFileUtils.TRANSLATIONS)
+		def ctrl = new MultiSiteFileUtils(resolvePath(), MultiSiteFileUtils.TRANSLATIONS)
 		if (request.post) {
 			ctrl.update(params.site, params.key, params.value) as JSON
 			render([ok: true] as JSON)
@@ -79,7 +84,9 @@ class MultiSiteAdminController {
 			locales[it.toString()] = it
 		}
 
-		def translationsByLang = new MultiSiteFileUtils(PROJECT_PATH, MultiSiteFileUtils.TRANSLATIONS).translationsByLang()
+		def obj = new MultiSiteFileUtils(resolvePath(), MultiSiteFileUtils.TRANSLATIONS)
+
+		def translationsByLang = obj.translationsByLang()
 
 		def localesList = translationsByLang.messagesByLocale.keySet().sort()
 
@@ -94,7 +101,7 @@ class MultiSiteAdminController {
 	}
 
 	def siteParamsByKey = {
-		def siteParamsBySite = new MultiSiteFileUtils(PROJECT_PATH, MultiSiteFileUtils.SITE_PARAMS).siteParamsBySite
+		def siteParamsBySite = new MultiSiteFileUtils(resolvePath(), MultiSiteFileUtils.SITE_PARAMS).siteParamsBySite
 
 		[allConfig: siteParamsBySite]
 	}
