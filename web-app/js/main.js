@@ -39,7 +39,7 @@
 
 	$('#translations')
 		.on('keydown', 'td[contenteditable]', function (ev) {
-			if(ev.keyCode == 13 && ! ev.shiftKey){
+			if (ev.keyCode == 13 && !ev.shiftKey) {
 				ev.preventDefault()
 			}
 		})
@@ -77,6 +77,26 @@
 
 			td.data('old', val)
 			td.prop('contenteditable', true);
+		})
+		.on('keyup', '#keyFilter', function (ev) {
+			var input = $(this),
+				table = $(ev.delegateTarget),
+				val = $.trim(input.val()).toLowerCase();
+
+			if (val.length) {
+				table.find('tbody tr').each(function () {
+					var tr = $(this),
+						current = $.trim(tr.find('th').text())
+
+					if (current.substr(0, val.length).toLowerCase() == val) {
+						tr.show()
+					} else {
+						tr.hide()
+					}
+				})
+			}   else{
+				table.find('tbody tr').show()
+			}
 		});
 
 	$(document).on('keydown', function (ev) {
@@ -241,7 +261,7 @@ $(window).on('scroll resize load', $.throttle(250, function () {
 
 	if (scrollY > $('table thead').offset().top + $('table thead').outerHeight(true)) {
 		$('table').addClass('sticky-y');
-		$('table thead th strong').css('top', scrollY + 'px')
+		$('table thead th > div').css('top', scrollY + 'px')
 	}
 	else {
 		$('table').removeClass('sticky-y')

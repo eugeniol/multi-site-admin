@@ -2,18 +2,9 @@
 <body>
 
 <table class="table" id="translations" data-table="messages">
-	<thead>
-	<tr>
-		<th><strong>#</strong></th>
-		<g:each in="${localesList}">
-			<th title="${it}" data-key="${it}"><strong>${it.displayName ?: it}</strong></th>
-				%{--<img src="http://l10n.xwiki.org/xwiki/bin/download/L10N/Flags/${it.toString().replaceFirst('_', '-')}.png"/>--}%
-		</g:each>
-	</tr>
-	</thead>
+	<g:render template="thead" model="[list: localesList]"/>
 	<tbody>
-
-	<g:each in="${allTranslations?.keySet().sort() ?: []}" var="key">
+	<g:each in="${allTranslations?.keySet() ?: []}" var="key">
 		<tr>
 			<th>${key}</th>
 			<g:each in="${localesList}" var="locale">

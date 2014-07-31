@@ -281,10 +281,6 @@ class SitesManager {
 		return _sites
 	}
 
-	List<String> getSteNames() {
-		return sites.keySet().sort()
-	}
-
 	File getPropertyFile(SiteEntity site, SitesManagerPropertiesType type) {
 		switch (type) {
 			case SitesManagerPropertiesType.SITE_PARAMS:

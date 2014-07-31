@@ -1,16 +1,10 @@
 <g:if test="${sites}">
 	<table class="table" id="translations" data-table="${type}">
-		<thead>
-		<tr>
-			<th><strong>#</strong></th>
-			<g:each in="${sites}">
-				<th data-key="${it}"><strong>${it}</strong></th>
-			</g:each>
-		</tr>
-		</thead>
+		<g:render template="thead" model="[list: sites]"/>
+
 		<tbody>
 
-		<g:each in="${allTranslations.keySet().sort()}" var="t">
+		<g:each in="${allTranslations.keySet()}" var="t">
 			<tr>
 				<th>${t}</th>
 				<g:each in="${sites}" var="site">
