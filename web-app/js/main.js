@@ -30,49 +30,38 @@
 
 	}
 
-	$('#translations').
-		on('mousedown', 'td', function (ev) {
+	$('#translations')
+		.on('blur', 'td[contenteditable]', function (ev) {
 			var td = $(this),
 				table = $(ev.delegateTarget),
 				th = table.find('thead tr th').eq(td.index()),
 				key = td.siblings().first().text()
 
+			var val = this.innerHTML
+
+			if (td.data('old') != val) {
+				$.post(location.toString(), {value: val, key: key, site: th.data('key')}, function (r) {
+					td.removeClass('bg-danger')
+					td.removeAttr('data-content')
+					td.removeAttr('data-toggle')
+				});
+			}
+			td.removeAttr('contenteditable');
+
+		})
+		.on('mousedown', 'td', function (ev) {
+			var td = $(this),
+				table = $(ev.delegateTarget),
+				th = table.find('thead tr th').eq(td.index()),
+				key = td.siblings().first().text()
 
 			if (td.attr('contenteditable')) {
 				return;
 			}
 
-			var old = this.innerHTML
 
-
-			td.one('blur', function () {
-				var val = this.innerHTML
-				if (old != val) {
-					$.post(location.toString(), {value: val, key: key, site: th.data('key')}, function (r) {
-						console.log('saved');
-					});
-				}
-			});
-
-			td.attr('contenteditable', true);
-
-			return
-
-
-			var input = $('<input/>').val(td.text()),
-				ok = $('<button/>').text('ok'),
-				key = td.siblings().first().text()
-
-			input.blur(function (ev) {
-				$.post('update', {text: input.val(), key: key, site: th.text()}, function (r) {
-					console.log(r);
-					td.html(input.val());
-				});
-				ev.stopPropagation();
-			});
-
-			td.html(input);
-			input.focus();
+			td.data('old', this.innerHTML)
+			td.prop('contenteditable', true);
 		});
 
 	$(document).on('keydown', function (ev) {
@@ -144,7 +133,6 @@
 	}
 
 
-
 	function _deleteRow(th, action) {
 		var tr = th.parent(),
 			key = th.text(),
@@ -157,7 +145,7 @@
 				return
 		}
 
-		$.post(action, {key: key, file: table.data('type'), newKey: newKey}, function (r) {
+		$.post(action, {key: key, table: table.data('table'), newKey: newKey}, function (r) {
 			console.log(action, 'saved');
 			switch (action) {
 

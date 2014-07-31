@@ -6,7 +6,8 @@
 
 	<div class="form-group">
 		<label class="sr-only">Sites</label>
-		<g:select name="filter" from="${allSites}" multiple="true" value="${sites}" class="selectpicker" size="1"/>
+		<g:select name="filter" from="${allSites}" multiple="true"
+				  value="${params.list('filter') ? sites : []}" class="selectpicker" size="1"/>
 	</div>
 
 	<button type="submit" class="btn btn-default">Filter</button>

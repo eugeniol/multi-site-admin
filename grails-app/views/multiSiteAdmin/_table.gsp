@@ -1,5 +1,5 @@
 <g:if test="${sites}">
-	<table class="table" id="translations" data-type="${type}">
+	<table class="table" id="translations" data-table="${type}">
 		<thead>
 		<tr>
 			<th>#</th>
