@@ -179,7 +179,14 @@ class MultiSiteAdminController {
 
 		def prop = ctrl.sites.find { it.name == site }?.getProperty(table)
 		if (prop) {
-			prop.setProperty(params.key, params.value)
+			key = key?.trim()
+			value = value?.trim()
+
+			if (value)
+				prop.setProperty(key, value)
+			else
+				prop.clearProperty(key)
+
 			ctrl.saveProperties(prop)
 		}
 	}
