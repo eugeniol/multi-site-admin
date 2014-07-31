@@ -4,12 +4,10 @@
 <table class="table" id="translations" data-table="messages">
 	<thead>
 	<tr>
-		<th>#</th>
+		<th><strong>#</strong></th>
 		<g:each in="${localesList}">
-			<th title="${it}" data-key="${it}">
+			<th title="${it}" data-key="${it}"><strong>${it.displayName ?: it}</strong></th>
 				%{--<img src="http://l10n.xwiki.org/xwiki/bin/download/L10N/Flags/${it.toString().replaceFirst('_', '-')}.png"/>--}%
-				${it.displayName ?: it}
-			</th>
 		</g:each>
 	</tr>
 	</thead>
@@ -33,7 +31,7 @@
 					out << 'data-toggle="popover" title="inconsistent" class="bg-danger" data-content=\'' <<
 							_toTable(trans)?.encodeAsHTML() <<
 							'\''
-				} %>>${sites.first()?.messages.getString(key)}</td>
+				} %>>${sites.first()?.messages.getString(key)?.encodeAsHTML()}</td>
 			</g:each>
 		</tr>
 	</g:each>

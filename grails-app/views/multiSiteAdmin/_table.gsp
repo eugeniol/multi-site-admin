@@ -2,9 +2,9 @@
 	<table class="table" id="translations" data-table="${type}">
 		<thead>
 		<tr>
-			<th>#</th>
+			<th><strong>#</strong></th>
 			<g:each in="${sites}">
-				<th data-key="${it}">${it}</th>
+				<th data-key="${it}"><strong>${it}</strong></th>
 			</g:each>
 		</tr>
 		</thead>
@@ -14,7 +14,7 @@
 			<tr>
 				<th>${t}</th>
 				<g:each in="${sites}" var="site">
-					<td>${allTranslations[t].containsKey(site) ? allTranslations[t][site] : ''}</td>
+					<td>${allTranslations[t].containsKey(site) ? allTranslations[t][site].encodeAsHTML() : ''}</td>
 				</g:each>
 			</tr>
 		</g:each>

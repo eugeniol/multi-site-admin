@@ -28,7 +28,6 @@ class MultiSiteAdminController {
 //			return
 			redirect(action: 'config')
 		}
-
 	}
 
 

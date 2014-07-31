@@ -30,6 +30,13 @@
 
 	}
 
+	function _tdSaved(td) {
+		td.addClass('saved');
+		setTimeout(function () {
+			td.removeClass('saved');
+		}, 5000)
+	}
+
 	$('#translations')
 		.on('blur', 'td[contenteditable]', function (ev) {
 			var td = $(this),
@@ -44,6 +51,7 @@
 					td.removeClass('bg-danger')
 					td.removeAttr('data-content')
 					td.removeAttr('data-toggle')
+					_tdSaved(td)
 				});
 			}
 			td.removeAttr('contenteditable');
@@ -83,6 +91,11 @@
 				l = t.innerHTML.length,
 				pos = getCharacterOffsetWithin(range, t)
 
+
+			if (ev.keyCode in [37, 38, 39, 40, 9, 13]){
+				ev.preventDefault();
+				ev.stopPropagation();
+			}
 
 			switch (ev.keyCode) {
 				case 38:
@@ -159,8 +172,10 @@
 					var newRow = tr.clone(true);
 					newRow.find('th').text(newKey);
 					tr.after(newRow);
+					break
 
 			}
+			_tdSaved(td)
 
 		});
 	}
@@ -184,3 +199,42 @@
 
 
 }(jQuery));
+
+
+//$w
+//	.load(setWidths)
+//	.resize($.debounce(250, function () {
+//		setWidths();
+//		repositionStickyHead();
+//		repositionStickyCol();
+//	}))
+//	.scroll($.throttle(250, repositionStickyHead));
+
+$(function () {
+	$('table thead th').each(function () {
+		$(this).css('width', $(this).width() + 'px')
+	})
+})
+$(window).on('scroll resize load', $.throttle(250, function () {
+
+	if (!$('table').size())
+		return
+
+	if (scrollX > 230) {
+		$('table tbody th').css('left', scrollX + 'px')
+		$('table').addClass('sticky-x')
+	}
+	else {
+		$('table').removeClass('sticky-x')
+		$('table tbody th').css('height', 'auto')
+	}
+
+	if (scrollY > $('table thead').offset().top + $('table thead').outerHeight(true)) {
+		$('table').addClass('sticky-y');
+		$('table thead th strong').css('top', scrollY + 'px')
+	}
+	else {
+		$('table').removeClass('sticky-y')
+	}
+
+}))
