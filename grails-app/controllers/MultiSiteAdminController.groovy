@@ -179,9 +179,6 @@ class MultiSiteAdminController {
 
 		def prop = ctrl.sites.find { it.name == site }?.getProperty(table)
 		if (prop) {
-			key = key?.trim()
-			value = value?.trim()
-
 			if (value)
 				prop.setProperty(key, value)
 			else
@@ -207,7 +204,7 @@ class MultiSiteAdminController {
 		sites.each { site ->
 			def properties = getMessagesProperties(site, SITE_PARAMS_FILENAME)
 			properties.keys.each {
-				def key = properties.getString(it).trim()
+				def key = properties.getString(it)
 
 				if (!allConfig.containsKey(it))
 					allConfig[it] = [:]
@@ -231,7 +228,7 @@ class MultiSiteAdminController {
 			def properties = site.siteParams
 
 			properties.keys.each {
-				def key = properties.getString(it).trim()
+				def key = properties.getString(it)
 
 				if (!allConfig.containsKey(it))
 					allConfig[it] = [:]
