@@ -10,16 +10,17 @@
 <html>
 
 <body>
+<h3>Configure the path to your site-app</h3>
 <g:form method="post" action="config">
-	<div class="form-group">
+		<div class="form-group">
 		<label for="project_path">Project path</label>
 		<input name="project_path" id="project_path" class="form-control" value="${defaultPath}"/>
 
 	</div>
 
 
-	<g:actionSubmit value="config" class="btn btn-default"/>
-	<g:actionSubmit value="reset" class="btn"/>
+	<g:actionSubmit value="Configure" class="btn btn-primary" action="config"/>
+	<g:actionSubmit value="Reset Configuration" class="btn " action="reset"/>
 
 </g:form>
 </body>

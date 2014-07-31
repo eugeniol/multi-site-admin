@@ -30,9 +30,7 @@
 
 <div class="tab-content">
 	<div class="tab-pane active">
-
 		<g:layoutBody/>
-
 	</div>
 </div>
 
