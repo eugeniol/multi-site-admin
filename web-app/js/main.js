@@ -38,13 +38,18 @@
 	}
 
 	$('#translations')
+		.on('keydown', 'td[contenteditable]', function (ev) {
+			if(ev.keyCode == 13 && ! ev.shiftKey){
+				ev.preventDefault()
+			}
+		})
 		.on('blur', 'td[contenteditable]', function (ev) {
 			var td = $(this),
 				table = $(ev.delegateTarget),
 				th = table.find('thead tr th').eq(td.index()),
 				key = td.siblings().first().text()
 
-			var val = this.innerHTML
+			var val = $.trim($(this).text());
 
 			if (td.data('old') != val) {
 				$.post(location.toString(), {value: val, key: key, site: th.data('key')}, function (r) {
@@ -68,7 +73,9 @@
 			}
 
 
-			td.data('old', this.innerHTML)
+			var val = $.trim($(this).text());
+
+			td.data('old', val)
 			td.prop('contenteditable', true);
 		});
 
@@ -92,10 +99,10 @@
 				pos = getCharacterOffsetWithin(range, t)
 
 
-			if (ev.keyCode in [37, 38, 39, 40, 9, 13]){
-				ev.preventDefault();
-				ev.stopPropagation();
-			}
+//			if (ev.keyCode in [37, 38, 39, 40, 9, 13]) {
+//				ev.preventDefault();
+//				ev.stopPropagation();
+//			}
 
 			switch (ev.keyCode) {
 				case 38:
@@ -116,8 +123,11 @@
 
 					break;
 				case 9:
-				case 13:
 					_lr(ev.shiftKey)
+					break;
+				case 13:
+					if (!ev.shiftKey)
+						_lr();
 					break;
 
 			}

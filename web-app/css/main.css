@@ -136,3 +136,12 @@ td.saved {
     background-color: #fcf8e3;
     border-color: #faebcc;
 }
+
+td {
+    max-width: 300px;
+    overflow-x: hidden;
+}
+
+td[contenteditable]{
+    overflow: scroll;
+}
