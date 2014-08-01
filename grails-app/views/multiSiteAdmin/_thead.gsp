@@ -1,6 +1,6 @@
 <%
-	def _name = { it ->
-		out << it instanceof Locale ? (it.displayName ?: it) : it
+	def _name = { l ->
+		out << (l instanceof Locale ? (l.displayName ?: l) : l)
 	}
 
 	def _flag = { l ->
