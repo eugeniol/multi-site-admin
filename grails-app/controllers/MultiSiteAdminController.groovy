@@ -395,6 +395,9 @@ class SiteEntity {
 		return _locale
 	}
 
+	String getCountryCode(){
+		return siteParams.getString('countryCode')?.toLowerCase()
+	}
 	PropertiesConfiguration getSiteParams() {
 		if (_siteParams == null) {
 			_siteParams = manager.loadProperties(manager.getPropertyFile(this, SitesManagerPropertiesType.SITE_PARAMS))

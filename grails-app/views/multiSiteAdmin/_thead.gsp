@@ -1,3 +1,25 @@
+<%
+	def _name = { it ->
+		out << it instanceof Locale ? (it.displayName ?: it) : it
+	}
+
+	def _flag = { l ->
+		String src
+
+		if (l instanceof Locale) {
+			src = l?.toString().toLowerCase().replace('_', '-')
+			src = g.resource(dir: 'images/flags', file: src.plus('.png'))
+		} else {
+			def cc = l.countryCode
+			if (cc?.size() == 2)
+				src = g.resource(dir: 'images/country', file: cc.plus('.png'))
+		}
+
+		if (src)
+			out << '<img src="' << src << '"/>'
+
+	}
+%>
 <thead>
 <tr>
 	<th>
@@ -9,8 +31,11 @@
 		</div>
 	</th>
 	<g:each in="${list}">
-		<th title="${it}" data-key="${it}"><div>${it instanceof Locale ? (it.displayName ?: it) : it}</div></th>
-	%{--<img src="http://l10n.xwiki.org/xwiki/bin/download/L10N/Flags/${it.toString().replaceFirst('_', '-')}.png"/>--}%
+		<th title="${it}" data-key="${it}"><div>
+			<% _flag(it) %>
+			<% _name(it) %>
+		</div>
+		</th>
 	</g:each>
 </tr>
 </thead>
