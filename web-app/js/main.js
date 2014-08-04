@@ -2,6 +2,15 @@
 
 	$('.selectpicker').selectpicker();
 
+
+	$('.config-form').on('click', '#ok',function (ev) {
+		$.cookie('project_path', $('#project_path').val(), { expires: 7, path: '/' });
+		window.location = '/'
+	}).on('click', '#reset', function (ev) {
+			$.removeCookie('project_path', { path: '/' });
+			window.location.reload()
+		});
+
 	function getCharacterOffsetWithin(range, node) {
 		var treeWalker = document.createTreeWalker(
 			node,
@@ -94,7 +103,7 @@
 						tr.hide()
 					}
 				})
-			}   else{
+			} else {
 				table.find('tbody tr').show()
 			}
 		});

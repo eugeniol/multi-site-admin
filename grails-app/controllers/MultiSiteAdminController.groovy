@@ -1,8 +1,13 @@
 import grails.converters.JSON
-import org.codehaus.groovy.grails.commons.ApplicationHolder
+import groovy.io.FileType
+import org.apache.commons.io.FilenameUtils
 import org.apache.commons.configuration.AbstractConfiguration
 import org.apache.commons.configuration.PropertiesConfiguration
 import org.apache.commons.lang.StringEscapeUtils
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.select.Elements
+
 import java.text.DateFormat
 
 /**
@@ -19,13 +24,39 @@ class MultiSiteAdminController {
 
 	}
 
+	def templatesInspector = {
+		def emaIntl = new ProjectEntity(base: new File(getProjectPath(), '../ema-intl'))
+
+		return [project: emaIntl]
+
+		def out = response.outputStream
+		emaIntl.templates.
+				findAll { it.name in ['/documents/news/hub'] }.
+				findAll { it instanceof FileTemplateEntity }.
+				each { FileTemplateEntity tmpl ->
+//					String text = ''
+//					tmpl.file.withReader { r ->
+//						def parser = new MySimpleTemplate()
+//						text += parser.parse(r)
+//
+//					}
+					println tmpl.childTemplatesNames
+
+					println tmpl.messagesCalls
+
+				}
+
+
+
+		render text: 'ok'
+		return
+
+
+	}
 
 	def beforeInterceptor = {
-		if (!session.project_path && !(actionName in ['config', 'reset'])) {
-//			println "cookie not set"
-//			session.project_path = PROJECT_PATH
-//			redirect(action: 'translationsByLanguage')
-//			return
+
+		if (!projectPath.exists() && !(actionName in ['config', 'reset'])) {
 			redirect(action: 'config')
 		}
 	}
@@ -40,7 +71,7 @@ class MultiSiteAdminController {
 	}
 
 	def translationsByLanguage = {
-		def manager = new SitesManager(resolvePath())
+		def manager = new SitesManager(projectPath)
 		def sites = filterSites('messages', manager.sites)
 		Map<Locale, List<SiteEntity>> sitesByLocale = sites.groupBy { it.locale }
 		def locales = sitesByLocale.keySet().findAll { it != null }
@@ -93,16 +124,7 @@ class MultiSiteAdminController {
 	}
 
 	def config = {
-		if (request.post) {
-			session.project_path = params.project_path
-			redirect action: 'index'
-		}
 		[defaultPath: defaultPath]
-	}
-
-	def reset = {
-		session.invalidate()
-		redirect action: 'config'
 	}
 
 	private def performMulitOperation(Closure body) {
@@ -111,7 +133,7 @@ class MultiSiteAdminController {
 			    newKey = params.newKey,
 			    table = params.table
 
-			def ctrl = new SitesManager(resolvePath())
+			def ctrl = new SitesManager(projectPath)
 
 			def messages = filterSites(table, ctrl.sites).collect { table == 'messages' ? it.messages : it.siteParams }
 			int c = 0
@@ -142,7 +164,7 @@ class MultiSiteAdminController {
 
 
 	private def handleTableAction(String table) {
-		def ctrl = new SitesManager(resolvePath())
+		def ctrl = new SitesManager(projectPath)
 		if (request.post) {
 			updateAndSave(ctrl, table, params.site, params.key, params.value)
 			render([ok: true] as JSON)
@@ -167,10 +189,17 @@ class MultiSiteAdminController {
 		filter ? values.findAll { it.value.keySet().find { it.name in filter } } : values
 	}
 
-	private File resolvePath() {
-		assert session.project_path
-		def file = new File(session.project_path)
-		assert file.exists()
+	private File getProjectPath() {
+		String cookieVal = request.cookies.find { it.name == 'project_path' }?.value?.decodeURL()
+		String project_path = ''
+
+		if (cookieVal && new File(cookieVal).exists()) {
+			project_path = cookieVal
+		} else {
+//			project_path =session.project_path
+		}
+
+		def file = new File(project_path)
 
 		return file
 	}
@@ -222,7 +251,7 @@ class MultiSiteAdminController {
 
 	def siteParamsByKey = {
 		Map allConfig = [:]
-		def ctrl = new SitesManager(resolvePath())
+		def ctrl = new SitesManager(projectPath)
 
 		filterSites('siteParams', ctrl.sites).each { site ->
 			def properties = site.siteParams
@@ -395,9 +424,10 @@ class SiteEntity {
 		return _locale
 	}
 
-	String getCountryCode(){
+	String getCountryCode() {
 		return siteParams.getString('countryCode')?.toLowerCase()
 	}
+
 	PropertiesConfiguration getSiteParams() {
 		if (_siteParams == null) {
 			_siteParams = manager.loadProperties(manager.getPropertyFile(this, SitesManagerPropertiesType.SITE_PARAMS))
@@ -417,3 +447,188 @@ class SiteEntity {
 		return name
 	}
 }
+
+abstract class TemplateEntity implements Comparable {
+	ProjectEntity project
+	List<TemplateEntity> parents = []
+
+	abstract String getText()
+
+	abstract String getName()
+
+	abstract List<TemplateEntity> getChildrens()
+
+	String[] getTranslations() {
+		[]
+	}
+
+	@Override
+	String toString() {
+		return name
+	}
+
+	@Override
+	int compareTo(Object o) {
+		if (o instanceof TemplateEntity) {
+			name.compareTo(o.name)
+		} else {
+			0
+		}
+	}
+
+}
+class CodeTemplateEntity extends TemplateEntity {
+	String name
+	String text = ''
+
+	@Override
+	List<TemplateEntity> getChildrens() {
+		[]
+	}
+}
+
+class FileTemplateEntity extends TemplateEntity {
+	File file
+
+	private String _name
+
+	@Override
+	String getText() {
+		file.exists() ? file.text : ''
+	}
+
+	FileTemplateEntity(ProjectEntity project, File file) {
+		this.project = project
+		this.file = file
+	}
+
+	String getName() {
+		if (!_name) {
+			if (file.exists()) {
+				_name = (file.parent - project.viewsDir.path).replace('\\', '/') + '/' +
+						FilenameUtils.getBaseName(file.name).replaceFirst(/^_/, '')
+			} else {
+				_name = file.name
+			}
+		}
+		return _name
+	}
+
+	List<TemplateEntity> _childrens
+
+
+	protected GspTemplateParser _parser
+
+	protected GspTemplateParser getParser() {
+		if (_parser == null) {
+			_parser = new GspTemplateParser()
+			file.withReader { r ->
+				_parser.parse(r)
+			}
+		}
+		_parser
+	}
+
+	protected Document _dom
+
+	protected Document getDom() {
+		if (_dom == null) {
+			_dom = Jsoup.parse(parser.text);
+		}
+		return _dom
+	}
+
+
+	String[] getChildTemplatesNames() {
+		Elements links = dom.select("[template]"); // a with href
+		links.collect { it.attr('template') }
+	}
+
+	String[] getMessagesCalls() {
+		String text = ''
+		def ret = []
+
+		parser.expressions.each { exp ->
+			println exp
+			exp.findAll(/(?m)\w+.translate\s*(.*?text\s*:\s*["']([\.\w]+)["'].*?)/) {
+				ret << it[2]
+//				println "acaaa --> " + it
+			}
+		}
+//					println text
+
+		Elements links = dom.select("[text]"); // a with href
+		links.each { ret << it.attr('text') }
+		return ret
+	}
+
+	List<TemplateEntity> getChildrens() {
+		if (_childrens == null) {
+			List childs = childTemplatesNames
+
+//			file.text.find(/(?m)\w+.render\s*(.*?template\s*:\s*["']([\/\w]+)["'].*?)/) {
+//				childs << it[1]
+//				println it
+//			}
+
+			_childrens = childs.collect { name ->
+				project.templates.find { it.name == name } ?: new CodeTemplateEntity(
+						project: this.project, name: name)
+			}.sort()
+
+			_childrens.each {
+				it.parents << this
+			}
+		}
+		return _childrens
+	}
+
+
+	@Override
+	String[] getTranslations() {
+		def ret = []
+		messagesCalls.each { ret << it }
+
+		childrens.each {
+			it.translations.each { ret << it }
+		}
+
+		return ret.unique()
+	}
+}
+
+
+
+class ProjectEntity {
+	File base
+
+	File getViewsDir() {
+		new File(base, 'grails-app/views')
+	}
+
+	private List<TemplateEntity> _templates
+	private List<TemplateEntity> _topLevelTemplates
+
+	List<TemplateEntity> getTopLevelTemplates() {
+		if (_topLevelTemplates == null) {
+			_topLevelTemplates = templates.findAll { it.parents.size() == 0 }
+		}
+		return _topLevelTemplates
+	}
+
+	List<TemplateEntity> getTemplates() {
+		if (_templates == null) {
+			_templates = []
+			viewsDir.eachFileRecurse(FileType.FILES) { file ->
+				if (FilenameUtils.getExtension(file.name).toLowerCase() == 'gsp')
+					_templates << new FileTemplateEntity(this, file)
+			}
+
+			_templates*.getChildrens()
+		}
+		return _templates
+	}
+
+}
+
+

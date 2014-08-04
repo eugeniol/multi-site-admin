@@ -10,18 +10,18 @@
 <html>
 
 <body>
-<h3>Configure the path to your site-app</h3>
-<g:form method="post" action="config">
-		<div class="form-group">
-		<label for="project_path">Project path</label>
-		<input name="project_path" id="project_path" class="form-control" value="${defaultPath}"/>
 
-	</div>
+<div class="jumbotron config-form">
+	<h2>Project path</h2>
 
+	<p>Configure the path to your site-app</p>
 
-	<g:actionSubmit value="Configure" class="btn btn-primary" action="config"/>
-	<g:actionSubmit value="Reset Configuration" class="btn " action="reset"/>
+	<p><input name="project_path" id="project_path" class="form-control" value="${defaultPath}"/></p>
 
-</g:form>
+	<p><a class="btn btn-primary btn-lg" id="ok">Configure</a> or <a href="#" id="reset">Reset</a> your configuration
+	</p>
+
+</div>
+
 </body>
 </html>
