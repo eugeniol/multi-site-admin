@@ -1,7 +1,7 @@
 class TreeBuilderTagLib {
 	static namespace = "uke"
 	def tree = { attrs ->
-		def template = (TemplateEntity) attrs.template
+		def template = attrs.template
 
 		if (template.childrens) {
 			out << '<ul>'

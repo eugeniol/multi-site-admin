@@ -25,33 +25,12 @@ class MultiSiteAdminController {
 	}
 
 	def templatesInspector = {
-		def emaIntl = new ProjectEntity(base: new File(getProjectPath(), '../ema-intl'))
+		def emaIntl = new ProjectEntity(
+				base: new File(getProjectPath(), '../ema-intl'),
+				sitesManager: new SitesManager(projectPath)
+		)
 
-		return [project: emaIntl]
-
-		def out = response.outputStream
-		emaIntl.templates.
-				findAll { it.name in ['/documents/news/hub'] }.
-				findAll { it instanceof FileTemplateEntity }.
-				each { FileTemplateEntity tmpl ->
-//					String text = ''
-//					tmpl.file.withReader { r ->
-//						def parser = new MySimpleTemplate()
-//						text += parser.parse(r)
-//
-//					}
-					println tmpl.childTemplatesNames
-
-					println tmpl.messagesCalls
-
-				}
-
-
-
-		render text: 'ok'
-		return
-
-
+		return [project: emaIntl, allTranslations: emaIntl.sitesManager.allMessages]
 	}
 
 	def beforeInterceptor = {
@@ -451,6 +430,7 @@ class SiteEntity {
 abstract class TemplateEntity implements Comparable {
 	ProjectEntity project
 	List<TemplateEntity> parents = []
+	SitesManager sitesManager
 
 	abstract String getText()
 
@@ -458,9 +438,14 @@ abstract class TemplateEntity implements Comparable {
 
 	abstract List<TemplateEntity> getChildrens()
 
+	String[] getMessagesCalls() { [] }
+
 	String[] getTranslations() {
 		[]
 	}
+
+	List<String> getWords() { [] }
+
 
 	@Override
 	String toString() {
@@ -497,9 +482,11 @@ class FileTemplateEntity extends TemplateEntity {
 		file.exists() ? file.text : ''
 	}
 
-	FileTemplateEntity(ProjectEntity project, File file) {
+
+	FileTemplateEntity(ProjectEntity project, File file, SitesManager sitesManager = null) {
 		this.project = project
 		this.file = file
+		this.sitesManager = sitesManager
 	}
 
 	String getName() {
@@ -544,22 +531,31 @@ class FileTemplateEntity extends TemplateEntity {
 		links.collect { it.attr('template') }
 	}
 
+	String[] _messagesCalls
+
+	@Override
 	String[] getMessagesCalls() {
-		String text = ''
-		def ret = []
+		if (_messagesCalls == null) {
+			def ret = []
 
-		parser.expressions.each { exp ->
-			println exp
-			exp.findAll(/(?m)\w+.translate\s*(.*?text\s*:\s*["']([\.\w]+)["'].*?)/) {
-				ret << it[2]
-//				println "acaaa --> " + it
+			parser.expressions.each { exp ->
+				println exp
+				exp.findAll(/(?m)\w+.translate\s*(.*?text\s*:\s*["']([\.\w]+)["'].*?)/) {
+					ret << it[2]
+				}
 			}
-		}
-//					println text
 
-		Elements links = dom.select("[text]"); // a with href
-		links.each { ret << it.attr('text') }
-		return ret
+			Elements links = dom.select("[text]"); // a with href
+			links.each { ret << it.attr('text') }
+
+			childrens.each {
+				it.messagesCalls.each { ret << it }
+			}
+
+			_messagesCalls = ret*.trim()
+		}
+
+		return _messagesCalls
 	}
 
 	List<TemplateEntity> getChildrens() {
@@ -583,17 +579,33 @@ class FileTemplateEntity extends TemplateEntity {
 		return _childrens
 	}
 
+	List<String> _words
+
+	List<String> getWords() {
+
+		if (_words == null) {
+			_words = []
+			text.findAll(/\b([\.\w]+)\b/) {
+				def w = it[1]
+				if (w.contains('.'))
+					_words << w
+			}
+
+			childrens.each {
+				it.words.each { _words << it }
+			}
+
+//			_words = _words.unique()
+		}
+		return _words
+	}
 
 	@Override
 	String[] getTranslations() {
 		def ret = []
-		messagesCalls.each { ret << it }
+		return words.findAll { sitesManager.allMessages.containsKey(it) }
 
-		childrens.each {
-			it.translations.each { ret << it }
-		}
-
-		return ret.unique()
+//		return ret.unique()
 	}
 }
 
@@ -601,6 +613,7 @@ class FileTemplateEntity extends TemplateEntity {
 
 class ProjectEntity {
 	File base
+	SitesManager sitesManager
 
 	File getViewsDir() {
 		new File(base, 'grails-app/views')
@@ -621,7 +634,7 @@ class ProjectEntity {
 			_templates = []
 			viewsDir.eachFileRecurse(FileType.FILES) { file ->
 				if (FilenameUtils.getExtension(file.name).toLowerCase() == 'gsp')
-					_templates << new FileTemplateEntity(this, file)
+					_templates << new FileTemplateEntity(this, file, sitesManager)
 			}
 
 			_templates*.getChildrens()

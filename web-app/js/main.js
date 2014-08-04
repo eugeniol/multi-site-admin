@@ -250,13 +250,13 @@
 //	.scroll($.throttle(250, repositionStickyHead));
 
 $(function () {
-	$('table thead th').each(function () {
+	$('table#translations thead th').each(function () {
 		$(this).css('width', $(this).width() + 'px')
 	})
 })
 $(window).on('scroll resize load', $.throttle(250, function () {
 
-	if (!$('table').size())
+	if (!$('table#translations').size())
 		return
 
 	if (scrollX > 230) {

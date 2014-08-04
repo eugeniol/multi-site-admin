@@ -28,24 +28,33 @@
 						list.size() > 1 ? list[1] : ''
 					}
 				%>
-				<g:each in="${group}" var="item">
-					<h4>${item.key}</h4>
-					<ul>
 
+
+				<table class="table table-bordered">
+					<thead><tr>
+						<th colspan="4">Top Level Templates</th>
+					</tr></thead>
+
+					<tbody><g:each in="${group}" var="item">
+						<tr>
+							<th>${item.key}</th>
+							<th>Translations used</th>
+							<th>translate() calls</th>
+							<th>Child Templates</th>
+						</tr>
 						<g:each in="${item.value}" var="template">
-							<li>
-								<strong>${template.name}</strong>
+							<tr>
+								<th>${template.name}</th>
+								<td><%=template.translations?.toList().unique().sort()*.encodeAsHTML().join('<br>')%></td>
 
-								<div>
-									${template.translations?.sort()*.encodeAsHTML() .join(', ')}
-								</div>
-								<uke:tree template="${template}"/>
-							</li>
-
+								<td><%=template.messagesCalls?.toList().sort()*.encodeAsHTML().join('<br>')%></td>
+								<td><uke:tree template="${template}"/></td>
+							</tr>
 						</g:each>
-					</ul>
-				</g:each>
 
+					</g:each></tbody>
+
+				</table>
 			</div>
 		</div>
 	</div>
