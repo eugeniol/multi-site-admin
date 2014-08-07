@@ -52,6 +52,14 @@
 				ev.preventDefault()
 			}
 		})
+		.on('paste', 'td[contenteditable]', function (e) {
+			e.preventDefault();
+			var clip = e.originalEvent.clipboardData;
+			if (clip) {
+				var data = clip.getData('text/plain');
+				document.execCommand('inserttext', false, data);
+			}
+		})
 		.on('blur', 'td[contenteditable]', function (ev) {
 			var td = $(this),
 				table = $(ev.delegateTarget),
