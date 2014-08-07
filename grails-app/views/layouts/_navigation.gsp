@@ -11,8 +11,9 @@
 	]
 %>
 
-<g:cookie name="project_path"/>
-<ul class="${mode == 'top' ? 'nav nav-tabs' : ''}" role="tablist">
+
+
+<ul class="${mode == 'top' ? 'nav navbar-nav' : ''}" role="tablist">
 	<g:each in="${['index', 'config', 'translationsByLanguage', 'translationsBySite',
 			'siteParams', 'siteParamsByKey', 'templatesInspector']}"
 			var="el">
