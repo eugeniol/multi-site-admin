@@ -30,6 +30,6 @@ grails.project.dependency.resolution = {
 		compile 'commons-configuration:commons-configuration:1.10'
 //		compile 'org.tmatesoft.svnkit:svnkit:1.8.5'
 		compile 'org.jsoup:jsoup:1.7.2'
-
+//		runtime ":war-exec:1.0.3"
 	}
 }

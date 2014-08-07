@@ -20,13 +20,7 @@
 
 <body>
 
-<ul class="nav nav-tabs" role="tablist">
-	<g:each in="${['index', 'config', 'translationsByLanguage', 'translationsBySite', 'siteParams', 'siteParamsByKey','traverseView']}"
-			var="el">
-		<li class="${el == actionName ? 'active' : ''}"><g:link
-				action="${el}"><%=el.replaceAll(/\B[A-Z]/) { ' ' + it }.toLowerCase()%></g:link></li>
-	</g:each>
-</ul>
+<g:render template="/layouts/navigation"/>
 
 <div class="tab-content">
 	<div class="tab-pane active">

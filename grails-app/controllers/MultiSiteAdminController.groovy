@@ -9,6 +9,8 @@ import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 
 import java.text.DateFormat
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 /**
  * Created with IntelliJ IDEA.
@@ -21,7 +23,7 @@ class MultiSiteAdminController {
 	String PROJECT_PATH = 'C:\\Users\\elattanzio\\Workspaces\\scenic3\\ema-site-app\\'
 
 	def index = {
-
+		[:]
 	}
 
 	def templatesInspector = {
@@ -444,7 +446,7 @@ abstract class TemplateEntity implements Comparable {
 		[]
 	}
 
-	List<String> getWords() { [] }
+	List getWords() { [] }
 
 
 	@Override
@@ -539,7 +541,6 @@ class FileTemplateEntity extends TemplateEntity {
 			def ret = []
 
 			parser.expressions.each { exp ->
-				println exp
 				exp.findAll(/(?m)\w+.translate\s*(.*?text\s*:\s*["']([\.\w]+)["'].*?)/) {
 					ret << it[2]
 				}
@@ -579,41 +580,135 @@ class FileTemplateEntity extends TemplateEntity {
 		return _childrens
 	}
 
-	List<String> _words
+	List _words
+	int _wordsCount = 0
 
-	List<String> getWords() {
+	static final Pattern WORDS_MATCHER = ~/\b([\.\w]+)\b/
 
+	List getWords() {
 		if (_words == null) {
 			_words = []
-			text.findAll(/\b([\.\w]+)\b/) {
-				def w = it[1]
-				if (w.contains('.'))
-					_words << w
-			}
+			def allMessages = sitesManager?.allMessages
+			def matcher = WORDS_MATCHER.matcher(text)
 
-			childrens.each {
-				it.words.each { _words << it }
-			}
+			while (matcher.find()) {
+				_wordsCount++;
 
-//			_words = _words.unique()
+				def t = matcher.group()
+				if (allMessages?.containsKey(t)) {
+					def tt = new TranslationInTemplate(this, matcher, t)
+					_words << tt
+				}
+			}
 		}
-		return _words
+
+		return childrens.collect { it.words }.flatten() + _words
 	}
 
 	@Override
 	String[] getTranslations() {
 		def ret = []
+
 		return words.findAll { sitesManager.allMessages.containsKey(it) }
 
 //		return ret.unique()
 	}
 }
 
+class TranslationEntity {
+
+	String key
+	Map<SiteEntity, String> values = [:]
+
+
+	@Override
+	public java.lang.String toString() {
+		return key
+	}
+}
+class TranslationManager implements Map<String, TranslationEntity> {
+
+	Map<String, TranslationEntity> translation = []
+
+	@Override
+	int size() {
+		translation.size()
+	}
+
+	@Override
+	boolean isEmpty() {
+		translation.isEmpty()
+	}
+
+	@Override
+	boolean containsKey(Object key) {
+		translation.contains(key)
+
+	}
+
+	@Override
+	boolean containsValue(Object value) {
+		translation.containsValue(value)
+	}
+
+	@Override
+	TranslationEntity get(Object key) {
+		translation.get(key)
+	}
+
+	@Override
+	TranslationEntity put(String key, TranslationEntity value) {
+		translation.get(key, value)
+
+	}
+
+	@Override
+	TranslationEntity remove(Object key) {
+		translation.remove(key)
+	}
+
+	@Override
+	void putAll(Map m) {
+		translation.putAll(m)
+	}
+
+	@Override
+	void clear() {
+		translation.clear()
+	}
+
+	@Override
+	Set keySet() {
+		translation.keySet()
+	}
+
+	@Override
+	Collection values() {
+		translation.values()
+	}
+
+	@Override
+	Set<Map.Entry> entrySet() {
+		translation.entrySet()
+	}
+
+	TranslationManager(SitesManager site) {
+		site.allMessages.each { key, sites ->
+			def tr = new TranslationEntity()
+			tr.key = key
+			tr.values = sites.clone()
+			translation << tr
+		}
+	}
+}
+
+
 
 
 class ProjectEntity {
 	File base
 	SitesManager sitesManager
+
 
 	File getViewsDir() {
 		new File(base, 'grails-app/views')
@@ -645,3 +740,27 @@ class ProjectEntity {
 }
 
 
+class TranslationInTemplate {
+	TemplateEntity template
+	int start
+	int end
+	String text
+
+	TranslationInTemplate(TemplateEntity tmpl, Matcher m, String t) {
+		start = m.start()
+		end = m.end()
+		text = t
+		template = tmpl
+	}
+
+
+	@Override
+	public java.lang.String toString() {
+		return "TranslationInTemplate{" +
+				"template=" + template +
+				", start=" + start +
+				", end=" + end +
+				", text='" + text + '\'' +
+				'}';
+	}
+}

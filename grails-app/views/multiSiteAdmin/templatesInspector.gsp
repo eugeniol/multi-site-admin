@@ -32,23 +32,37 @@
 
 				<table class="table table-bordered">
 					<thead><tr>
-						<th colspan="4">Top Level Templates</th>
+						<th colspan="3">Top Level Templates</th>
 					</tr></thead>
 
 					<tbody><g:each in="${group}" var="item">
 						<tr>
 							<th>${item.key}</th>
-							<th>Translations used</th>
-							<th>translate() calls</th>
 							<th>Child Templates</th>
+							<th>Translations used</th>
+							%{--<th>translate() calls</th>--}%
 						</tr>
 						<g:each in="${item.value}" var="template">
 							<tr>
 								<th>${template.name}</th>
-								<td><%=template.translations?.toList().unique().sort()*.encodeAsHTML().join('<br>')%></td>
-
-								<td><%=template.messagesCalls?.toList().sort()*.encodeAsHTML().join('<br>')%></td>
 								<td><uke:tree template="${template}"/></td>
+								<td>
+									<% def words = template.words?.groupBy { it.template.toString() } %>
+									<dl>
+										<g:each in="${words}" var="w">
+											<dt>${w.key}</dt>
+											<% def texts =w.value.collect{it.text}.unique() %>
+											<g:each in="${texts}" var="text">
+												<dd><%=text%></dd>
+											</g:each>
+
+										</g:each>
+
+									</dl>
+								</td>
+
+								%{--<td><%=template.messagesCalls?.toList().sort()*.encodeAsHTML().join('<br>')%></td>--}%
+
 							</tr>
 						</g:each>
 
